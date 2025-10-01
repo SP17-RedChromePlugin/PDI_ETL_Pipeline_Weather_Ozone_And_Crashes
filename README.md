@@ -11,3 +11,4 @@ NHTSA returns collision information and has two APIs that I make calls to, one b
 OpenAQ returns ozone level information, specifically ozone readings from the sensor implemented by Georgia Tech in Atlanta. I first called their API to get a list of sensors in the Atlanta area and then chose the one closest to my chosen geographic location for obtaining ozone readings.
 
 ## ETL Approach
+The data this pipeline takes in is 2-3 years old, since more recent crashes are not yet made public. Due to this and the small number of crashes added to NHTSA's database each day, running this pipeline on a batch cadence makes more sense than streaming. I'm unfamiliar with the best methods for running a pipeline automatically at a set time, so the solution I found for running on a batch cadence is to use Window's Task Scheduler. At the desired interval, it will call "Python.exe" with the Pipeline.py program passed as an argument.
