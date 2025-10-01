@@ -30,7 +30,7 @@ CREATE TABLE case_specifics (
     year INTEGER,
     month TEXT,
     day TEXT,
-    FOREIGN KEY (state_case) REFERENCES crashes(state_case)
+    FOREIGN KEY (state_case) REFERENCES crashes(state_case) --Allowing the foreign key to be the primary key of this table since it has a 1 to 1 relationship with the crashes table.
 )
 
 DROP TABLE IF EXISTS gtech_ozone;
