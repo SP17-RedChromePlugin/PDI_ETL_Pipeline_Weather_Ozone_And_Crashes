@@ -27,12 +27,13 @@ def openMeteo_APICall(latitude, longitude, start_date, end_date):
     response = requests.get(url, params=params)
     data = response.json()
     
-
-    if response.status_code == 200: #OK
+    #Handling HTTP response codes and errors in response
+    if response.status_code == 200:
         if not "error" in data:
             return data
         else:
             print("Response Error: ", data['error'], data['reason'])
+            return None
     else:
         print("HTTP Call Error:", response.status_code, response.text)
         return None
@@ -50,7 +51,7 @@ def NHTSA_APICall(stateCode, countyCode, startYear, endYear):
     response = requests.get(url, headers=headers, timeout=30)
     data = response.json()
     
-    if response.status_code == 200: #OK
+    if response.status_code == 200:
         return data
     else:
         print("Error:", response.status_code, response.text)
@@ -58,31 +59,34 @@ def NHTSA_APICall(stateCode, countyCode, startYear, endYear):
     
 
 
-def NHTSA_GetCaseSpecifics(db, stateCode):
+def NHTSA_GetCaseSpecifics(db, crash_df, stateCode):
+    """
+    This function acts as an addition to the previous NHTSA call. By default, crash information I obtain above
+    only provides the year that the specific incident occurred. To get the specific month and day, the case ID
+    alongside other identifiers must be sent back to receive more specific information.
+    """
 
     conn = sqlite3.connect(db)
-
-    crash_df = pd.read_sql_query("SELECT * FROM crashes", conn)
 
     caseSpecDB = pd.DataFrame(columns=["state_case","year","month","day"])
     tempdb = pd.read_sql_query(f"SELECT name FROM sqlite_master WHERE type='table' AND name='case_specifics'", conn)
     if len(tempdb["name"]) > 0: #case specifics table already exists in database
         caseSpecDB = pd.read_sql_query("SELECT * FROM case_specifics", conn)
 
-        for index, row in crash_df.iterrows():
-            scase = row["state_case"]
-            year = row["year"]
+    for index, row in crash_df.iterrows():
+        scase = row["state_case"]
+        year = row["year"]
 
-            if scase in caseSpecDB["state_case"].unique():
-                print(f"Skipping case {scase}, as it is in the dataset already")
-            else:
-                url = f"https://crashviewer.nhtsa.dot.gov/CrashAPI/crashes/GetCaseDetails?stateCase={scase}&caseYear={year}&state={stateCode}&format=json"
+        if scase in caseSpecDB["state_case"].unique():
+            print(f"Skipping case {scase}, as it is in the dataset already")
+        else:
+            url = f"https://crashviewer.nhtsa.dot.gov/CrashAPI/crashes/GetCaseDetails?stateCase={scase}&caseYear={year}&state={stateCode}&format=json"
 
-                new_df = NHTSA_CaseSpec_APICall(url, scase)
-                if new_df is not None:
-                    caseSpecDB = pd.concat([caseSpecDB, new_df])
+            new_df = NHTSA_CaseSpec_APICall(url, scase)
+            if new_df is not None:
+                caseSpecDB = pd.concat([caseSpecDB, new_df])
 
-        return caseSpecDB
+    return caseSpecDB
     
 
 
@@ -91,23 +95,22 @@ def NHTSA_CaseSpec_APICall(url, scase):
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
     }
 
-    time.sleep(2) #Being extra cautious since this will be sending multiple API calls in rapid succession
+    time.sleep(3) #Being cautious since this will be sending multiple API calls in rapid succession when new crash specifics emerge
 
     response = requests.get(url, headers=headers, timeout=30)
     data = response.json()
 
-    new_df = None
+    new_df = pd.DataFrame([[scase, None, None, None]])
     if data["Count"] == 1: #Some cases don't have detailed information released yet, in which case the API will return a count of 0
-        new_df = pd.DataFrame([[
-        scase,
-        data["Results"][0][0]['CrashResultSet']['YEAR'],
-        data["Results"][0][0]['CrashResultSet']['MONTH'],
-        data["Results"][0][0]['CrashResultSet']['DAY']
-        ]], columns = ["state_case","year","month","day"])
 
-        print(f"Successfully got date for case {scase}")
-    else:
-        print(f"Call to case {scase} returned {data["Count"]} rows, unable to get date information.")
+        #Since other date values in the datasets I'm working with have leading 0s in month and day values, I am adding them in here
+        year = data["Results"][0][0]['CrashResultSet']['YEAR']
+        month = f"{int(data["Results"][0][0]['CrashResultSet']['MONTH']):02}"
+        day = f"{int(data["Results"][0][0]['CrashResultSet']['DAY']):02}"
+
+        new_df = pd.DataFrame([[scase, year, month, day]], columns = ["state_case","year","month","day"])
+
+        print(f"Successfully got date for {scase}")
 
     return new_df
 
@@ -165,14 +168,18 @@ def transform_accidents(data):
     return accident_df
 
 def transform_ozone_measure(data):
-    ozone_df = pd.DataFrame(columns=["datetime","ozone_ppm"])
+    ozone_df = pd.DataFrame(columns=["datetime","mean_values", "minimum_value", "maximum_value", "name", "units"])
     for item in data.results:
         date = item.period.datetime_from.local[:10]
 
         new_df = pd.DataFrame([[
             date,
-            item.value
-        ]], columns=["datetime","ozone_ppm"])
+            item.value,
+            item.summary.min, 
+            item.summary.max, 
+            item.parameter.name, 
+            item.parameter.units
+        ]], columns=["datetime","mean_values", "minimum_value", "maximum_value", "name", "units"])
 
         ozone_df = pd.concat([ozone_df, new_df])
     return ozone_df
