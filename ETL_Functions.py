@@ -215,3 +215,23 @@ def load_to_database(weather_df, crash_df, casespecs_df, ozone_df, db="crashinfo
     print("Georgia Tech Ozone (gtech_ozone) data loaded into SQLite")
 
     conn.close()
+
+"""
+Other Functions Used In the Pipeline
+"""
+
+def run_sql_script(sqlite_db, sql_file):
+
+    conn = sqlite3.connect(sqlite_db)
+    cursor = conn.cursor()
+
+    with open(sql_file, 'r') as file:
+        sql = file.read()
+    
+    try:
+        cursor.executescript(sql)
+        conn.commit()
+    except sqlite3.Error as e:
+        print("Error running SQL script: ", e)
+        
+    conn.close()

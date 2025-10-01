@@ -8,6 +8,7 @@ countyCode = 121
 latitude = 33.8034
 longitude = -84.3963
 sensorId = 1972 #Code for the Georgia Tech Ozone sensor most closely tied to the chosen Atlanta area
+db = "crashinfo.db"
 
 #Specifying weather data from 2-3 years ago, to better align with available accident data
 def get_date_string(curTime, yearOffset):
@@ -27,7 +28,9 @@ ozone_data = ETL_Functions.OpenAQ_Sensor_APICall(sensorId, 1000, 3)
 
 weather_df = ETL_Functions.transform_weather(weather_data)
 crash_df = ETL_Functions.transform_accidents(crash_data)
-casespecs_df = ETL_Functions.NHTSA_GetCaseSpecifics("crashinfo.db", crash_df, stateCode)
+casespecs_df = ETL_Functions.NHTSA_GetCaseSpecifics(db, crash_df, stateCode)
 ozone_df = ETL_Functions.transform_ozone_measure(ozone_data)
 
-ETL_Functions.load_to_database(weather_df, crash_df, casespecs_df, ozone_df, db="crashinfo.db")
+ETL_Functions.run_sql_script(db, "SQL/create_schema.sql")
+ETL_Functions.load_to_database(weather_df, crash_df, casespecs_df, ozone_df, db=db)
+ETL_Functions.run_sql_script(db, "SQL/create_views.sql")
