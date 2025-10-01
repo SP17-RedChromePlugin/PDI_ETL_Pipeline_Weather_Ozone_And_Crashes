@@ -27,7 +27,7 @@ ozone_data = ETL_Functions.OpenAQ_Sensor_APICall(sensorId, 1000, 3)
 
 weather_df = ETL_Functions.transform_weather(weather_data)
 crash_df = ETL_Functions.transform_accidents(crash_data)
-casespecs_df = ETL_Functions.NHTSA_GetCaseSpecifics("crashinfo.db", crash_df, 13)
+casespecs_df = ETL_Functions.NHTSA_GetCaseSpecifics("crashinfo.db", crash_df, stateCode)
 ozone_df = ETL_Functions.transform_ozone_measure(ozone_data)
 
 ETL_Functions.load_to_database(weather_df, crash_df, casespecs_df, ozone_df, db="crashinfo.db")
