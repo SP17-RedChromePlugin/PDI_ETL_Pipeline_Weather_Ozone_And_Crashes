@@ -29,4 +29,10 @@ ozone_crashes_by_day: Links every day that ozone levels were recorded with crash
 crashes_ozone_freq: Sorts ozone levels into buckets and shows frequency of crashes within each bucket.
 
 ## Current Issues / Changes I Would Have Made With More Time
-Given the timeframe and my limited knowledge of ETL pipelines, there are multiple areas that would need to be reworked if this were to be implemented. Currently, the load function writes over anything present in the database already, which isn't ideal if this is meant to be collecting information over time. I would want new data to be appended to the database, and duplicate entries to be dropped. I also would have liked to avoid needing an API key for any of my datasets, since sharing it publicly is not a good idea. I hope that what I've put together in this timeframe though is enough to show my passion for the subject and willingness to learn new skills!
+Given the timeframe and my limited knowledge of ETL pipelines, there are multiple areas that would need to be reworked if this were to be implemented. 
+
+Currently, the load function writes over anything present in the database already, which isn't ideal if this is meant to be collecting information over time. I would want new data to be appended to the database, and duplicate entries to be dropped. 
+
+I also would have liked to avoid needing an API key for any of my datasets, since sharing it publicly is not a good idea. 
+
+I hope that what I've put together in this timeframe though is enough to show my passion for the subject and willingness to learn new skills!
