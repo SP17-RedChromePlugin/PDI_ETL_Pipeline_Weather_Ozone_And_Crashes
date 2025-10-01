@@ -19,7 +19,7 @@ weather_end_time = get_date_string(datetime.now(), 2)
 
 weather_data = ETL_Functions.openMeteo_APICall(33.8034, -84.3963, weather_start_time, weather_end_time)
 
-#Setting the end year to now so that all retrieved information is the most recent possible
+#Setting the end year to now so that all retrieved information is as current as possible.
 crash_data = ETL_Functions.NHTSA_APICall(13, 121, current_time.date().year - 3, current_time.date().year)
 
 #Choosing page 3 will break as its timeframe is static, should implement a solution to get the correct page
