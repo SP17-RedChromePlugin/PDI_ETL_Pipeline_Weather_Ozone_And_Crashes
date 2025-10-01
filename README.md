@@ -33,6 +33,8 @@ Given the timeframe and my limited knowledge of ETL pipelines, there are multipl
 
 Currently, the load function writes over anything present in the database already, which isn't ideal if this is meant to be collecting information over time. I would want new data to be appended to the database, and duplicate entries to be dropped. 
 
+Eventually, the page specified when asking for data from OpenAQ will need to be changed, and I would have liked to implement a way to send a request for each page of information and only keep the relevant page/pages.
+
 I also would have liked to avoid needing an API key for any of my datasets, since sharing it publicly is not a good idea. 
 
 I hope that what I've put together in this timeframe though is enough to show my passion for the subject and willingness to learn new skills!
