@@ -1,0 +1,12 @@
+# ETL Pipeline for Analyzing Weather and Ozone Level Impacts on Crash Frequency
+
+For this ETL pipeline project, I chose to work with the APIs of OpenMeteo, NHTSA, and OpenAQ to extract weather, car crash, and ozone level data for the Atlanta area. My goal was to be able to look at correlations between precipitation and car crash frequency, since rain and snowfall are common road hazards, and potential correlations between ozone levels and car collisions, something that does not have a known correlation.
+
+## Chosen Datasets
+
+OpenMeteo returns weather information and has an interactive tool that helps build requests to their API, so I used that as a guide for formatting the call to them. The two errors I handle in this call are HTTP response codes other than the 200 OK, and errors sent back by OpenMeteo, due to rate limits, incorrect parameters, or other internal reasons.
+
+NHTSA returns collision information and has two APIs that I make calls to, one being an addendum to the other. The first is to get crash information by location, which returns decent information but only provides the year the crash occurred, which isn't very helpful. To get the month and day of the crash, separate API calls must be made for each ID related to the specific crash. I wanted to be very careful when potentially making bulk requests here, so I added a few measures to limit how many calls are made. Only cases that aren't currently stored in the database are called to reduce redundancy, and there is an adjustable timer to specify a delay between calls.
+
+OpenAQ returns ozone level information, specifically ozone readings from the sensor implemented by Georgia Tech in Atlanta. I first called their API to get a list of sensors in the Atlanta area and then chose the one closest to my chosen geographic location for obtaining ozone readings.
+
