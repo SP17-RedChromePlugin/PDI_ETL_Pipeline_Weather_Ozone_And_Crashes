@@ -12,3 +12,18 @@ OpenAQ returns ozone level information, specifically ozone readings from the sen
 
 ## ETL Approach
 The data this pipeline takes in is 2-3 years old, since more recent crashes are not yet made public. Due to this and the small number of crashes added to NHTSA's database each day, running this pipeline on a batch cadence makes more sense than streaming. I'm unfamiliar with the best methods for running a pipeline automatically at a set time, so the solution I found for running on a batch cadence is to use Window's Task Scheduler. At the desired interval, it will call "Python.exe" with the Pipeline.py program passed as an argument.
+
+## Views
+There are a total of 6 views created by the pipeline:
+
+crash_weather: Links every crash in the database with the respective weather conditions present on that day. Only includes crashes where weather conditions were known.
+
+weather_crashes_by_day: Links every day that weather conditions were recorded with crashes that occurred that day.
+
+crashes_precip_freq: Utilizes the weather_crashes_by_day view to sort rows into buckets depending on the amount of total precipitation that day. It counts the total accidents that occurred in each bucket, as well as the total entries in each bucket, and gives an output of crash frequency in each bucket.
+
+crash_ozone: Links every crash with the respective ozone readings present on that day. Only includes crashes where ozone readings were known.
+
+ozone_crashes_by_day: Links every day that ozone levels were recorded with crashes that occurred that day.
+
+crashes_ozone_freq: Sorts ozone levels into buckets and shows frequency of crashes within each bucket.
